@@ -204,7 +204,7 @@ const ChannelsViewer: React.FC<ChannelsViewerProps> = ({ onNavigate, systemSetti
     }
   };
 
-  const currentCategoryItems = selectedCategory ? groupedContent[selectedCategory] : [];
+  const currentCategoryItems = selectedCategory ? (groupedContent[selectedCategory] || []) : [];
 
   const getColumnCount = (width: number) => {
     if (width >= 1280) return 4;

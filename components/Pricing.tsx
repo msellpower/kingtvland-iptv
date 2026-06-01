@@ -174,31 +174,35 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan, onNavigate, isShabbat, 
               <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-500/30 to-transparent mb-8"></div>
 
               <ul className="space-y-4 flex-1 mb-8">
-                {(t(`pricing.plan.${plan.id}.features` as any) as string).split(',').map((feature, index) => {
-                   const trimmedFeature = feature.trim();
-                   // Logic to strike through "Support" features if Basic service selected
-                   const isSupportFeature = trimmedFeature.includes('תמיכה') || trimmedFeature.includes('שירות') || trimmedFeature.includes('Support');
-                   const strike = serviceLevel === ServiceLevel.BASIC && isSupportFeature;
+                {(() => {
+                  const featuresText = t(`pricing.plan.${plan.id}.features` as any);
+                  const planFeatures = typeof featuresText === 'string' ? featuresText.split(',') : [];
+                  return planFeatures.map((feature, index) => {
+                    const trimmedFeature = feature.trim();
+                    // Logic to strike through "Support" features if Basic service selected
+                    const isSupportFeature = trimmedFeature.includes('תמיכה') || trimmedFeature.includes('שירות') || trimmedFeature.includes('Support');
+                    const strike = serviceLevel === ServiceLevel.BASIC && isSupportFeature;
 
-                   return (
-                    <li key={index} className="flex items-center gap-3">
+                    return (
+                      <li key={index} className="flex items-center gap-3">
                         <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${strike ? 'bg-gray-700 text-gray-500' : (plan.isPremium ? 'bg-purple-500/20 text-purple-400' : 'bg-cyan-500/20 text-cyan-400')}`}>
-                            {strike ? (
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            ) : (
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                </svg>
-                            )}
+                          {strike ? (
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                          ) : (
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                              </svg>
+                          )}
                         </div>
                         <span className={`text-base font-medium transition-colors ${strike ? 'text-gray-600 line-through decoration-gray-500' : 'text-gray-300'}`}>
-                            {trimmedFeature}
+                          {trimmedFeature}
                         </span>
-                    </li>
-                   );
-                })}
+                      </li>
+                    );
+                  });
+                })()}
                 {/* Featured Benefits */}
                 <li className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center">

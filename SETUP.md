@@ -1,59 +1,61 @@
-# Email System Setup Guide
+# SETUP
 
-## 1. Daily Trigger (Firebase Functions)
-To ensure the quotas are reset and monitoring is active, set up a scheduled function:
+## דרישות מוקדמות
+- Node.js 18 או יותר
+- npm 9 או יותר
+- Git
 
-```javascript
-// functions/index.js
-const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { getTodayQuotas } = require("./src/quotaManager");
-
-exports.dailyQuotaReset = onSchedule("0 0 * * *", async (event) => {
-  await getTodayQuotas(); // This will initialize today's document
-  console.log("Daily quota document initialized");
-});
+## התקנה ראשונית
+פתח את שורש הפרויקט והפעל:
+```bash
+npm install
 ```
 
-## 2. Cloudflare DNS Records
-For the domain **YOUR_DOMAIN.COM**, add the following records:
+## משתני סביבה
+העתק את `.env.example` ל-`.env` ועדכן את הערכים:
+```env
+GOOGLE_SCRIPT_URL=<Google Apps Script Web App URL>
+ADMIN_PASS=<Strong admin password>
+ADMIN_DEV_TOKEN=<Local development token>
+NETLIFY=false
+NODE_ENV=development
 
-### SPF Record (TXT)
-Add or update your SPF record to include all providers:
-`v=spf1 include:spf.brevo.com include:_spf.resend.com include:_spf.elasticemail.com ~all`
+# Firebase (אופציונלי, אם משתמשים ב-Firebase)
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
 
-### DKIM Records (CNAME/TXT)
-*   **Brevo:** Add the TXT record provided in your Brevo dashboard (usually `mail._domainkey`).
-*   **Resend:** Add the 3 CNAME records provided in your Resend dashboard.
-*   **Elastic Email:** Add the TXT record `api._domainkey`.
+## הפעלה מקומית
+```bash
+npm run dev
+```
 
-### DMARC Record (TXT)
-Host: `_dmarc`
-Value: `v=DMARC1; p=quarantine; rua=mailto:admin@YOUR_DOMAIN.COM`
+לאחר ההפעלה, היישום יהיה זמין ב-`http://localhost:3000`.
 
-## 3. Google Sheets Integration
-Ensure your App Script is deployed as a Web App with "Anyone" access.
-1. Copy the Script URL.
-2. Add it to the `GOOGLE_SCRIPT_URL` environment variable in your server environment.
-3. The system now uses a secure backend proxy (`/api/sheet/proxy`) to communicate with Google Sheets, hiding your Script URL from the client.
+## בנייה והצגה מקומית
+```bash
+npm run build
+npm run preview
+```
 
-The script should expect a JSON POST with an `action` field and corresponding payload.
+## בדיקה
+```bash
+npm run lint
+```
 
-## 4. Netlify Deployment Guide
-To deploy this full-stack app to Netlify:
+## חיבור Google Sheets
+המערכת משתמשת ב-Google Sheets כמאגר נתונים.
+1. פרוס את קוד ה-App Script כ-Web App עם גישה ל-Anyone.
+2. עדכן את `GOOGLE_SCRIPT_URL` בקובץ `.env`.
+3. ודא שהפונקציות מתפקדות דרך ה-API.
 
-### 1. Environment Variables
-In Netlify Dashboard (Site settings > Environment variables), add:
-*   `GOOGLE_SCRIPT_URL`: Your Google Apps Script Web App URL.
-*   `GEMINI_API_KEY`: Your Google Gemini API Key.
-*   `DUKHIFAT_API_KEY`: Your Dukhifat API Key.
-*   `NETLIFYY`: Set to `true`.
-*   `NODE_ENV`: Set to `production`.
-*   `FIREBASE_SERVICE_ACCOUNT`: (Optional) Your Firebase Service Account JSON string for backend admin features.
+## Netlify
+בעת פריסה ל-Netlify, שנה את `NETLIFY=true` ו-`NODE_ENV=production`.
 
-### 2. Build Settings
-*   **Build command:** `npm run build`
-*   **Publish directory:** `dist`
-*   **Functions directory:** `netlify/functions`
-
-### 3. Serverless Backend
-The backend is automatically handled by the `netlify/functions/api.ts` file and configured via `netlify.toml`. All requests to `/api/*` are proxied to the serverless Express app.
+## הערות כלליות
+- הקובץ `firebase-applet-config.json` מכיל את קונפיגורציית Firebase.
+- אם אינך משתמש ב-Firebase, המערכת עדיין יכולה לפעול עם Google Sheets בלבד.
