@@ -1,0 +1,7 @@
+
+#EXTM3U
+#EXTINF:-1 group-title="4K Movies",Avatar 2 4K
+#EXTINF:-1 group-title="4K Movies",Top Gun Maverick 4K
+#EXTINF:-1 group-title="Premium Sports",Sky Sports Premier League
+#EXTINF:-1 group-title="Premium Sports",BeIN Sports 4K
+#EXTINF:-1 group-title="Premium Live",HBO Live

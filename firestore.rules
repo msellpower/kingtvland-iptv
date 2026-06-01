@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitives & Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isEmailVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() { return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // --- Validation Blueprints ---
+    
+    function isValidOrder(data) {
+      return data.keys().hasAll(['name', 'phone', 'planId', 'customerType', 'serviceType']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.phone is string && data.phone.size() <= 20 &&
+             data.planId is string && data.planId.size() <= 50 &&
+             data.customerType is string && data.serviceType is string;
+    }
+
+    function isValidUser(data) {
+      return data.email is string && data.email.size() <= 100 &&
+             (!('role' in data) || data.role == 'user');
+    }
+
+    function isValidTicket(data) {
+      return data.keys().hasAll(['name', 'description', 'type']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.description is string && data.description.size() <= 2000 &&
+             data.type is string;
+    }
+
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['sessionId', 'sender', 'text', 'timestamp']) &&
+             data.sessionId is string &&
+             data.sender in ['user', 'admin', 'system'] &&
+             data.text is string && data.text.size() <= 5000;
+    }
+
+    function isValidNotificationToken(data) {
+      return data.keys().hasAll(['userId', 'token', 'updatedAt']) &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.token is string && data.token.size() <= 2048 &&
+             data.updatedAt is timestamp;
+    }
+
+    // --- Match Blocks ---
+
+    // Admins: Read-only for admins (to prevent self-creation)
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+    }
+
+    // Orders: Anyone verified can create, only admin can read/manage
+    match /orders/{orderId} {
+      allow create: if isValidId(orderId) && isEmailVerified() && isValidOrder(incoming()) && (
+        incoming().userId == request.auth.uid // Enforce identity
+      );
+      allow get: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow list, update, delete: if isAdmin();
+    }
+
+    // Users: Owner can read/update (PII logic: get and update), Admin can do all
+    match /users/{userId} {
+      allow read, update: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Tickets: Only verified users can create
+    match /tickets/{ticketId} {
+      allow create: if isValidId(ticketId) && isEmailVerified() && isValidTicket(incoming());
+      allow get: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow list, update, delete: if isAdmin();
+    }
+
+    // Chats: Session must belong to user
+    match /chats/{sessionId} {
+      allow create: if isEmailVerified() && incoming().userId == request.auth.uid;
+      allow read, update: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+      allow delete: if isAdmin();
+      
+      // Messages: Linked to session
+      match /messages/{messageId} {
+        allow read, create: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/chats/$(sessionId)).data.userId == request.auth.uid);
+      }
+    }
+
+    // Settings: Public read, Admin write
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/telegram {
+      allow read, write: if isAdmin();
+    }
+
+    match /notificationTokens/{tokenId} {
+      allow create, update: if isOwner(incoming().userId) && isValidNotificationToken(incoming()) && incoming().userId == request.auth.uid;
+      allow get: if isOwner(resource.data.userId) || isAdmin();
+      allow list, delete: if isAdmin();
+    }
+  }
+}

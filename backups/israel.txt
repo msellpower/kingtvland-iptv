@@ -1,0 +1,12 @@
+
+#EXTM3U
+#EXTINF:-1 group-title="Israel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Kan_11_2017.png/1200px-Kan_11_2017.png",Kan 11
+https://kan11.media.kan.org.il/hls/live/2024514/2024514/master.m3u8
+#EXTINF:-1 group-title="Israel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Keshet_12_logo.svg/1200px-Keshet_12_logo.svg.png",Keshet 12
+https://keshet.akamai.net.il/live/hls/live_12/index.m3u8
+#EXTINF:-1 group-title="Israel" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Reshet_13_Logo.svg/1200px-Reshet_13_Logo.svg.png",Reshet 13
+https://d18b0e6mopany4.cloudfront.net/out/v1/08bc71cf0a0f4712b6b03c732b0e6d7d/index.m3u8
+#EXTINF:-1 group-title="Israel",Channel 14
+https://ch14-channel14-content.akamaized.net/hls/live/2099958/CH14_LIVE/master.m3u8
+#EXTINF:-1 group-title="Israel",Knesset Channel
+https://knesset-live.gvt1.com/hls/knesset/index.m3u8

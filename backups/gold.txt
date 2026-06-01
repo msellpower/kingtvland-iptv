@@ -1,0 +1,7 @@
+
+#EXTM3U
+#EXTINF:-1 group-title="Gold VIP",Gold Movie Channel
+#EXTINF:-1 group-title="Gold VIP",Gold Sports 1
+#EXTINF:-1 group-title="Gold VIP",Gold Sports 2
+#EXTINF:-1 group-title="Documentary",Nat Geo Gold
+#EXTINF:-1 group-title="Kids",Disney Gold

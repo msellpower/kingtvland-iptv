@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase orders",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "planId": { "type": "string" },
+        "customerType": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "isRenewal": { "type": "boolean" },
+        "targetUsername": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["name", "phone", "planId", "customerType", "serviceType"]
+    },
+    "User": {
+      "title": "User",
+      "description": "App users",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "birthday": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "subscriptions": { "type": "array" }
+      },
+      "required": ["email"]
+    },
+    "Ticket": {
+      "title": "Ticket",
+      "description": "Support and bug reports",
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string" },
+        "planId": { "type": "string" },
+        "type": { "type": "string" },
+        "category": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "ChatSession": {
+        "title": "Chat Session",
+        "description": "Individual chat sessions",
+        "type": "object",
+        "properties": {
+            "sessionId": { "type": "string" },
+            "lastMessage": { "type": "string" },
+            "lastTimestamp": { "type": "string" },
+            "unreadCount": { "type": "number" },
+            "userName": { "type": "string" }
+        },
+        "required": ["sessionId"]
+    },
+    "ChatMessage": {
+        "title": "Chat Message",
+        "description": "Messages within a chat session",
+        "type": "object",
+        "properties": {
+            "sessionId": { "type": "string" },
+            "sender": { "type": "string", "enum": ["user", "admin", "system"] },
+            "text": { "type": "string" },
+            "timestamp": { "type": "string" },
+            "read": { "type": "boolean" }
+        },
+        "required": ["sessionId", "sender", "text", "timestamp"]
+    },
+    "SystemSettings": {
+        "title": "System Settings",
+        "description": "Global application configuration",
+        "type": "object",
+        "properties": {
+            "SHABBAT_START_FRIDAY": { "type": "string" },
+            "SHABBAT_END_SATURDAY": { "type": "string" },
+            "SUPPORT_START_DAILY": { "type": "string" },
+            "SUPPORT_END_DAILY": { "type": "string" },
+            "SUPPORT_PHONE": { "type": "string" },
+            "TELEGRAM_USERNAME": { "type": "string" },
+            "MAINTENANCE_MODE": { "type": "boolean" },
+            "DB_MODE": { "type": "string", "enum": ["firebase", "sheets"] }
+        }
+    },
+    "TelegramSettings": {
+        "title": "Telegram Bot Settings",
+        "description": "Tokens for notifications and publishing",
+        "type": "object",
+        "properties": {
+            "alertBotToken": { "type": "string" },
+            "alertChatId": { "type": "string" },
+            "announcementBotToken": { "type": "string" },
+            "announcementChatId": { "type": "string" },
+            "updatedAt": { "type": "string" }
+        }
+    },
+    "NotificationToken": {
+        "title": "Notification Token",
+        "description": "A device token for push notifications",
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string" },
+          "token": { "type": "string" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["userId", "token", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": { "schema": "Order", "description": "Customer orders" },
+    "/users/{userId}": { "schema": "User", "description": "Registered users" },
+    "/tickets/{ticketId}": { "schema": "Ticket", "description": "Issue reports" },
+    "/chats/{sessionId}": { "schema": "ChatSession", "description": "Chat sessions" },
+    "/chats/{sessionId}/messages/{messageId}": { "schema": "ChatMessage", "description": "Chat history" },
+    "/settings/global": { "schema": "SystemSettings", "description": "Site configuration" },
+    "/settings/telegram": { "schema": "TelegramSettings", "description": "Telegram bot configuration" },
+    "/notificationTokens/{tokenId}": { "schema": "NotificationToken", "description": "Stores user push notification tokens." }
+  }
+}
+

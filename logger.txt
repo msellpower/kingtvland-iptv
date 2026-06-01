@@ -1,0 +1,444 @@
+
+Fixed mpegts.createPlayer configuration argument structure and handled mpegts.player.play() return type safety in components/VideoPlayer.tsx.
+[DATE] Added Quality Filters to ChannelsViewer and Enhanced VideoPlayer.
+- `components/ChannelsViewer.tsx`: Added state and UI for quality filtering (4K, FHD, HD). Implemented filtering logic based on channel name content.
+- `components/VideoPlayer.tsx`: Added controls for Seek -/+ 10s, Picture-in-Picture, Aspect Ratio toggle, and Reload Stream. Updated HLS configuration to prioritize stability (increased buffer lengths, disabled low latency).
+[DATE] Enhanced ContentShowcase with Mock Data.
+- `components/ContentShowcase.tsx`: Added comprehensive MOCK_DATA with placeholder images from TMDB. Implemented fallback logic so the Netflix-like UI is always visible even if VOD M3U fetch fails.
+- `index.html`: Added `.scrollbar-hide` CSS utility for cleaner carousels.
+[DATE] Added Deals Section to Homepage.
+- `components/DealsSection.tsx`: Created a new section component displaying 3 distinct offers (Referral, Renewal, Premium) with interactive cards.
+- `App.tsx`: Integrated `DealsSection` into the home view, replacing the simpler `PromoBanner`.
+[DATE] Enhanced VideoPlayer with Robust Proxy Support.
+- `components/VideoPlayer.tsx`: Updated `detectPlaylist` and `useEffect` logic to correctly identify HLS vs MPEG-TS streams even when proxied via CodeTabs. Enhanced `mpegts.js` config to handle TS streams over HTTP/Proxy. Enforced CodeTabs proxy for all non-CodeTabs URLs to solve CORS.
+[DATE] Fixed "Browser could not play format" error in VideoPlayer.
+- `components/VideoPlayer.tsx`: Updated stream type detection logic to default to MPEG-TS for URLs without extensions (common in IPTV live streams), preventing the fallback to the incompatible native player.
+[DATE] Added Auto-Join Modal and WhatsApp Widget.
+- `App.tsx`: Added `useEffect` logic to trigger `JoinModal` after 4 seconds for non-logged-in users (using localStorage to prevent repetition). Added `WhatsAppButton` to the layout.
+- `components/WhatsAppButton.tsx`: Created new floating button component that opens a direct WhatsApp chat with the admin.
+[DATE] Optimized ContentShowcase and Added Request Feature.
+- `components/ContentShowcase.tsx`: Removed automatic M3U fetching on mount to prevent startup errors and bandwidth usage. Now purely uses expanded mock data for the showcase.
+- `components/RequestContent.tsx`: Created new component for users to request Channels/Movies/Series.
+- `code.txt` & `services/sheetService.ts`: Added backend support for `Requests` sheet and handling content requests with formatted dates (DD-MM-YY).
+- `components/Header.tsx` & `App.tsx`: Integrated navigation for the new "Request Content" page.
+[DATE] Added 'Mark as Read' functionality for Admin Chat.
+- `code.txt`: Added `mark_read` action to backend.
+- `services/sheetService.ts`: Added `markMessagesAsRead` function.
+- `components/AdminChat.tsx`: Added "Mark as Read" button, optimistic UI updates for unread counts, and visual badge for unread messages.
+[DATE] Integrated Full Premium API Management.
+- `code.txt`: Added `sync_premium_user` action for manual syncing. Improved `syncNewPremiumUser` logic to handle dates and MAC addresses reliably.
+- `services/sheetService.ts`: Added `syncPremiumUserToSheet` function.
+- `components/PremiumManager.tsx`: Added optional Username/Password fields for creating M3U lines. Added "Import to CRM" button in the Info tab for manual syncing of existing API users.
+[DATE] Added GOLD Plan and Trial Button.
+- `constants.ts`: Added GOLD plan (300 NIS).
+- `code.txt`: Updated backend to support GOLD M3U url and proxy.
+- `components/PremiumManager.tsx`: Added "Create Trial (24h)" button.
+- `services/m3uService.ts`: Refactored to fetch metadata from local files first for speed, then resolve URL from backend only on play. Added local backup txt files.
+[DATE] Updated M3U Sources for King and Israel.
+- `code.txt`: Updated `CONSTANT_M3U_URLS` with direct download links from Google Drive for King and Israel plans.
+- `constants.ts`: Updated `M3U_URLS` with new Drive links.
+- `services/m3uService.ts`: Updated `fetchMetadata` to prioritize fetching live list from backend (Drive) to ensure content list is up-to-date with Drive files.
+[DATE] Fixed Google Drive Link Format (View to Download).
+- `code.txt`: Corrected `CONSTANT_M3U_URLS` to use `export=download` format instead of `view?usp=sharing` to prevent HTTP 404/HTML response errors. Added `followRedirects: true` to UrlFetchApp.
+- `constants.ts`: Updated frontend constants to match the corrected download links.
+[DATE] Corrected Backups & Drive Proxy Logic.
+- `backups/king.txt`: Updated with distinct International/VOD content to avoid confusion with Israel plan.
+- `backups/israel.txt`: Updated with clear Israeli channel list.
+- `code.txt`: Added `confirm=t` to Drive links and unique timestamp param to prevent caching and 404 errors. Added explicit error handling for empty responses.
+[DATE] Smart Drive Fetcher with DriveApp Fallback.
+- `code.txt`: Implemented `fetchGoogleDriveFile` function. It first tries `DriveApp` (internal) to bypass all download limits/warnings. If that fails (permissions), it uses a smart regex fetcher to extract the 'virus scan confirm' token from the HTML warning page and follows the link automatically. This solves the 404/HTML response issue for large files.
+[DATE] Swapped King/Israel IDs & Improved Trials.
+- `code.txt` & `constants.ts`: Swapped the Drive IDs for King and Israel.
+- `components/PremiumManager.tsx`: Added nice result card for created subscriptions/trials with copy buttons.
+- `code.txt`: Updated `syncNewPremiumUser` to handle `isTrial` flag correctly (24h expiration).
+[DATE] Added Why Us Section to Hero.
+- `components/Hero.tsx`: Implemented "Why Us" section with modern glass-card layout, highlighting reliability, speed, and content diversity.
+[DATE] Consolidated Support Menu & Telegram.
+- `components/SupportMenu.tsx`: Created new unified support component.
+- `App.tsx`: Removed `LiveChatWidget` and `WhatsAppButton`, integrated `SupportMenu`.
+- `components/LiveChatWidget.tsx` & `components/WhatsAppButton.tsx`: Deleted.
+- Logic: Everyone sees Telegram. Only logged-in users (VIP) see WhatsApp and Live Chat buttons above it.
+[DATE] Implemented Subscription Extension Logic.
+- `components/Profile.tsx`: Added logic to handle "Extend Subscription" click.
+- Blocked 'Crystal' plans with a custom modal instead of a simple alert.
+- Mapped other plan types to existing plan objects and opened `PurchaseModal` with "Existing Customer" rate.
+[DATE] Implemented Customized Trial Flow.
+- `components/Profile.tsx`: Added modal for selecting Trial Plan type. Added Success Modal with 20s auto-close.
+- `services/sheetService.ts`: Updated `requestTrial` to accept `planId`.
+- `code.txt`: Updated `handleCreateTrial` to create a Pending row in DB with 24h expiration, trigger Telegram notification (if configured), and log email simulation.
+[DATE] Backend Full Implementation.
+- `code.txt`: Replaced placeholders with full implementations for:
+  - `verifyPendingPayments`: Crypto verification with BscScan.
+  - `handleLogin`: Full credential check and subscription gathering.
+  - `handleSubscription`: Logic to add to Subscribers and create Trial Customer.
+  - `handleGetAdminData`: Aggregation of revenue, stats, and table data.
+  - Chat Functions: `getChatSessions`, `handleGetMessages`, `handleMarkMessagesRead`.
+  - Added Telegram notifications for critical actions (Login alerts, New orders, Payment success).
+[DATE] Integrated Israel Auto-Trial Logic.
+- `code.txt`: Added `createExternalTrial` function connecting to `livetvproo.com` API for automatic Israel plan generation. Modified `handleCreateTrial` to use this logic for 'israel' plan ID, while keeping manual 'Pending' status for other plans.
+- `components/Profile.tsx`: Updated success modal to show distinct message for active auto-generated trials versus pending manual requests.
+
+[20-02-26] Fixed UI Overlap in ContentShowcase.
+- `components/ContentShowcase.tsx`: Adjusted Hero content positioning (`bottom-0` to `bottom-12 md:bottom-24`) and reduced negative margin for content rows (`-mt-32` to `-mt-20 md:-mt-28`) to prevent buttons from overlapping with section titles.
+
+[20-02-26] System Optimization & QA Fixes (v7.0.0).
+- `code.txt`: Consolidated redundant functions (`handleSubscription` and `handleCreateOrder` into `handleLeadAndTrial`).
+- `code.txt`: Moved all sensitive configuration (API keys, passwords, URLs) to the 'Settings' sheet for better security and easier management.
+- `code.txt`: Added placeholders and preparation for Firebase integration (free tier).
+- `code.txt`: Enhanced `setup` function to automatically create all sheets, headers, and default settings with sample data.
+- `services/m3uService.ts`: Enhanced metadata fetching with emergency local storage backup (`emergency_m3u_`) to ensure content lists are visible even if the stream fails.
+- `services/sheetService.ts`: Cleaned up redundant API calls and aligned with the new consolidated backend structure.
+- `CRM`: Improved data structure and added Firebase migration placeholders in the Settings sheet.
+
+[20-02-22] Content and Support Logic Update.
+- `constants.ts`: Updated marketing copy. Removed '24/7 support', replaced 'no buffering' with 'up to 94% stability', and removed '2 devices connection'.
+- `components/SupportMenu.tsx`: Restricted WhatsApp and Live Chat support buttons to be visible only to logged-in users with an active premium subscription.
+
+[20-02-23] Shabbat and Support Hours Implementation.
+- `code.txt`: Added Shabbat and Support hours settings to 'Settings' sheet. Implemented `get_public_settings` action.
+- `utils/timeLogic.ts`: Created utility for Israel time calculation and system status checking.
+- `components/ShabbatOverlay.tsx`: Added beautiful Shabbat message overlay.
+- `App.tsx`: Integrated time logic, settings fetching, and Shabbat overlay.
+- `components/Pricing.tsx` & `components/Hero.tsx`: Disabled purchase/trial buttons during Shabbat.
+- `components/SupportMenu.tsx`: Hidden support buttons outside daily active hours.
+- `services/sheetService.ts`: Added `getPublicSettings` and updated `registerUser` signature.
+- `components/RegisterModal.tsx`: Fixed countdown logic and missing useEffect.
+- Verified build and lint success.
+
+[20-02-23] System Setup & Caching Enhancements.
+- `code.txt`: Enhanced `setup()` function to automatically create all sheets, headers, and security keys.
+- `code.txt`: Added Telegram notifications for Orders, Chat Messages, Issue Reports, and Content Requests.
+- `services/sheetService.ts`: Implemented memory and LocalStorage caching for `getPublicSettings` (10-minute TTL) to optimize API usage.
+- Verified lint success.
+
+[20-02-23] React Hook Fix & Optimization.
+- `App.tsx`: Fixed "Rendered fewer hooks than expected" error by converting `renderContent` function to a proper React component `<Content />`. This ensures consistent hook execution regardless of the current view.
+- Verified lint success.
+
+[20-02-23] VPN Removal & Blog Overhaul (Movie News Aggregator).
+- `AppsGuide.tsx` & `README.md`: Removed all mentions of VPN as per user request.
+- `types.ts`: Added `rating` and `trailerUrl` to `BlogPost` interface.
+- `services/newsService.ts`: Completely rewrote to fetch real movie news from `seret.co.il` RSS feed and enrich data using TMDB API (metadata, ratings, and YouTube trailers).
+- `Blog.tsx`: Redesigned as a "Hebrew Movie News Aggregator". Implemented responsive grid, RTL support, TMDB rating display, and a modal for watching YouTube trailers.
+- Verified lint success.
+
+[20-02-23] Performance Optimizations & TMDB Enhancements.
+- `index.html`: Added global CSS optimizations (`content-visibility: auto`, `will-change: transform`) to improve rendering and scroll performance.
+- `services/newsService.ts`: Implemented `localStorage` caching for movie news (24h TTL) and added an English search fallback for TMDB when Hebrew results are missing.
+- `Blog.tsx`, `ContentShowcase.tsx`, `ChannelsViewer.tsx`: Applied `content-section` class for `content-visibility` optimization and ensured `loading="lazy"` on all images.
+- `Blog.tsx`: Optimized scroll animations using `whileInView` with viewport margins.
+- Verified lint success.
+
+[20-02-23] UX & Advanced Performance Improvements.
+- `Skeleton.tsx`: Created a reusable skeleton component for loading states.
+- `Blog.tsx`: Implemented skeleton loaders and debounced search (300ms) for better responsiveness.
+- `ChannelsViewer.tsx`: Integrated skeleton loaders for metadata fetching.
+- `ScrollToTop.tsx` & `ScrollProgress.tsx`: Added new global UX components for navigation and progress tracking.
+- `App.tsx`: Integrated `ScrollToTop` and `ScrollProgress` globally.
+- `ContentShowcase.tsx`: Added `fetchPriority="high"` to hero images for faster LCP.
+- `index.html`: Added `dns-prefetch` and `preconnect` for TMDB assets.
+- `services/newsService.ts`: Optimized image sizes to `w342` for grid items.
+- Verified lint success.
+
+[23-02-23] Bug Fixes.
+- `ContentShowcase.tsx`: Fixed React warning by changing `fetchpriority` to `fetchPriority`.
+- Verified lint success.
+
+[23-02-23] UX & Functional Updates.
+- `LoginModal.tsx` & `RegisterModal.tsx`: Hidden password fields and made them optional for simplified access.
+- `newsService.ts`: Increased blog posts to 25+ by supplementing RSS feed with TMDB "Now Playing" movies.
+- `Blog.tsx` & `Pricing.tsx`: Improved accessibility (ARIA labels) and performance (decoding="async").
+- Verified lint success.
+
+[23-02-23] PWA & Blog Enhancements.
+- `types.ts`: Added `fullContent` to `BlogPost`.
+- `newsService.ts`: Increased blog posts to 50+ by fetching multiple TMDB categories (Now Playing, Popular, Top Rated). Forced cache refresh.
+- `Blog.tsx`: Implemented a details modal for blog posts to show full content within the site.
+- `manifest.json` & `sw.js`: Implemented PWA support for mobile installability.
+- `index.html` & `index.tsx`: Integrated PWA manifest and service worker registration.
+- Verified lint success.
+
+[23-02-23] Bug Fixes.
+- `SupportMenu.tsx`: Fixed "Rendered fewer hooks than expected" error by moving early return after all hooks and reordering function definitions.
+- Verified lint success.
+
+[24-02-23] Blog Enhancements & Seret.co.il Scraping.
+- `code.txt`: Added `handleGetArticleDetails` to fetch and scrape Seret.co.il pages for subtitle, video, and details.
+- `types.ts`: Added `subtitle`, `videoSource`, `extraDetails` to `BlogPost`.
+- `newsService.ts`: Added `getArticleDetails` to call backend, and `fetchMoviesByCategory` to support tabs.
+- `Blog.tsx`: Added tabs, updated `loadNews` to handle tabs, and updated the modal to fetch and display the detailed info.
+- Verified lint success.
+
+[24-02-23] Backend Logic Improvements (code.txt).
+- `handleGetArticleDetails`: Added caching (6 hours) to reduce external requests and improved regex for better content extraction.
+- `handleSecureLogin`: Fixed CRITICAL BUG where strikes were incremented even on successful login due to duplicate code block.
+- `handleSecureLogin`: Cleaned up 2FA and Trusted Device logic, removed redundant sheet reads.
+- `Token Security`: Added `isTemp` flag to tokens to restrict actions during 2FA verification.
+- `doPost`: Enforced 2FA restriction for temp tokens.
+- Verified lint success.
+
+[24-02-23] Blog Data Fetching Fixes.
+- `newsService.ts`: Updated `fetchLatestMovieNews` to use `rss2json.com` directly for better reliability.
+- `newsService.ts`: Improved image extraction from RSS feed description and enclosures.
+- `newsService.ts`: Added error handling for trailer fetching to prevent entire batch failure.
+- Verified lint success.
+
+[24-02-23] Enhanced Blog Content & RSS Integration.
+- `code.txt`: Updated `handleGetArticleDetails` to support `s_movies.asp` structure (Hebrew/English titles, synopsis, video).
+- `code.txt`: Added Windows-1255 encoding support for Seret.co.il parsing.
+- `newsService.ts`: Integrated multiple RSS feeds (News, Reviews, New Movies, Popular, Upcoming) into `fetchMoviesByCategory`.
+- `newsService.ts`: Updated `fetchMoviesByCategory` to prioritize RSS content and fallback to TMDB.
+- `newsService.ts`: Refactored `fetchLatestMovieNews` to use the unified `fetchMoviesByCategory` logic.
+- Verified lint success.
+
+[24-02-23] Improved Description Extraction (code.txt).
+- Added multi-strategy description extraction for `s_movies.asp`:
+  1. `itemprop="description"`
+  2. `og:description` (OpenGraph meta tag)
+  3. `meta name="description"`
+  4. Heuristic: Longest text cell in `td.text12` (common in Seret.co.il layout).
+- Added `og:description` fallback for article pages as well.
+- Verified lint success.
+
+[24-02-23] Documentation.
+- Created `IMPROVEMENTS.md`: A comprehensive report detailing potential enhancements for security, performance, stability, and UX without breaking existing code.
+
+[24-02-23] Implemented Improvements from Report.
+- **Security**:
+  - Installed `dompurify` and applied it to `Blog.tsx` to sanitize HTML content in the modal.
+  - Enhanced `code.txt` with granular rate limiting (per action) to prevent abuse.
+- **Performance & UX**:
+  - Updated `Blog.tsx` with a **Rating Filter** (min rating dropdown).
+  - Added a **Share Button** to the blog modal using `navigator.share` API.
+  - Enhanced `public/sw.js` with advanced caching strategies (Network First for APIs, Cache First for Images).
+- **Stability**:
+  - Added `checkScrapingHealth` function to `code.txt` for monitoring Seret.co.il scraping status.
+- Verified lint success.
+
+[24-02-23] Trial & Subscription Logic Overhaul.
+- `code.txt`: Replaced `handleCreateTrial` with `handleManualTrialRequest` for manual trial management (pending status, service hours check, Telegram notifications).
+- `code.txt`: Added `checkBirthdays` function for automated birthday greetings.
+- `services/sheetService.ts`: Updated `requestTrial` signature to include `name`, `phone`, `dob`.
+- `components/JoinModal.tsx`: Enhanced to support trial requests with additional fields (DOB) and conditional logic.
+- `components/Profile.tsx`: Updated trial flow to use new `requestTrial` signature and display success messages.
+- `components/Pricing.tsx`: Added "Request Trial" buttons to all plans.
+- `App.tsx`: Implemented `isTrialMode` state and `onRequestTrial` handler.
+- `utils/timeLogic.ts`: Updated service hours (Sun-Thu 10-22, Fri 10-14, Sat Closed) and added `isServiceActive` flag.
+- `types.ts`: Updated `UserSession` and `BlogPost` interfaces.
+- Verified lint and build success.
+
+[24-02-23] Bug Fixes.
+- `components/PurchaseModal.tsx`: Fixed "Cannot read properties of null (reading 'priceNew')" error by handling null `plan` prop gracefully.
+- Verified lint success.
+
+[26-02-26] Added USDT (TRC20) Payment Integration.
+- `components/CryptoPayment.tsx`: Created new component to handle USDT payments via Ramp Network.
+  - Generates QR Code (150x150) and payment link based on plan and service level.
+  - Supports VIP (Gold) and Regular (Blue) styling.
+  - Implemented specific pricing logic: King/Israel Regular (40), VIP (80); Premium Regular (80), VIP (120).
+- `components/ThankYouPage.tsx`: Created new page to display success message after Ramp payment.
+- `components/Pricing.tsx`: Integrated `CryptoPayment` component into pricing cards, visible when service is active.
+- `App.tsx`: Added routing logic for `/thankyou` page.
+- Verified lint and build success.
+
+[26-02-26] Improved Payment Flow UX.
+- `components/Pricing.tsx`: Removed direct Crypto Payment display from pricing cards.
+- `components/PurchaseModal.tsx`: Implemented a multi-step payment flow.
+  - Step 1: User enters Name & Phone.
+  - Step 2: User selects payment method: PayPal, PayBox, or Crypto (USDT).
+  - Step 3: Displays relevant payment interface (Redirect for PayPal, Details for PayBox, QR/Link for Crypto).
+- `components/CryptoPayment.tsx`: Refactored to remove internal toggle logic and display content directly when invoked.
+- Verified lint and build success.
+
+[26-02-26] Enhanced Admin Dashboard & Purchase Flow.
+- `components/PurchaseModal.tsx`:
+  - Added fields for Email, Renewal Status (New/Renewal), and Target Username (if Renewal).
+  - Implemented "Back" button in payment selection.
+  - Updated `orderData` structure to include new fields.
+- `components/AdminDashboard.tsx`:
+  - Added "Requests" (Trials) tab and table.
+  - Added "Customer View" modal to see all subscriptions, orders, and requests for a specific email.
+  - Updated `OrdersTable` to show Email and new status columns.
+  - Added `ClassifiedCustomersTables` with tabs for different customer types.
+- `code.txt`:
+  - Updated `HEADERS.ORDERS` to include Email, PaymentMethod, IsRenewal, TargetUsername.
+  - Updated `handleCreateOrder` to save new fields.
+  - Updated `handleGetAdminData` to return `requests` data.
+- `types.ts`:
+  - Updated `OrderData` and `AdminDataResponse` interfaces.
+- `services/sheetService.ts`:
+  - Verified `submitOrderToSheet` handles new fields correctly.
+- Verified lint and build success.
+
+[27-02-26] Added Email Verification for Registration.
+- `code.txt`:
+  - Added `EMAIL_VERIFICATIONS` sheet to `HEADERS`.
+  - Implemented `handleSendEmailCode` to generate and email a 6-digit code (10-min expiry).
+  - Updated `handleRegisterUser` to verify the email code instead of SMS code.
+  - Added `send_email_code` and `register_user` to public actions in `doPost`.
+- `services/sheetService.ts`:
+  - Added `sendEmailCode` function.
+  - Updated `registerUser` to accept `emailCode`.
+- `components/RegisterModal.tsx`:
+  - Replaced SMS verification flow with Email verification.
+  - Updated UI to reflect email code sending.
+- `App.tsx`:
+  - Updated `RegisterModal` usage to call `sheetService.registerUser` correctly.
+- Verified lint and build success.
+
+[27-02-26] Added Footer & SEO Audit.
+- `components/Footer.tsx`: Created new component with 3-column layout (About, Quick Links, Support) and keyword tags.
+- `App.tsx`: Integrated `Footer` component.
+- **SEO Audit & Plan**:
+  - **Missing**: JSON-LD Schema, Meta tags for individual pages (React Helmet needed), Sitemap, Robots.txt.
+  - **Action Plan**:
+    1. Install `react-helmet-async` for dynamic meta tags.
+    2. Create `SEO` component to manage Head tags.
+    3. Add JSON-LD structured data for Organization and Products.
+    4. Create dedicated landing pages for "Android", "Smart TV", etc.
+    5. Generate `sitemap.xml` and `robots.txt`.
+- Verified lint and build success.
+
+[27-02-26] Implemented SEO Phase 1.
+- Installed `react-helmet-async`.
+- Created `components/SEO.tsx` to manage meta tags and JSON-LD schema.
+- Updated `App.tsx`:
+  - Wrapped `App` with `HelmetProvider` in `index.tsx` (verified).
+  - Integrated `SEO` component into all views in `Content` switch.
+  - Added default SEO configuration for Home page with Organization schema.
+  - Added specific titles and descriptions for all other views (Profile, Promotions, Channels, etc.).
+- Verified lint and build success.
+
+[27-02-26] Implemented SEO Phase 2 (Landing Pages & Sitemap).
+- `components/DeviceLandingPage.tsx`: Created reusable landing page component for Android, Smart TV, Apple, and PC.
+- `App.tsx`:
+  - Updated `ViewState` type to include device pages.
+  - Added URL query param handling (`?view=...`) to enable direct linking and indexing.
+  - Added `DeviceLandingPage` routes to `Content` switch.
+- `components/Footer.tsx`: Added "Downloads & Devices" column with links to new landing pages.
+- `public/robots.txt`: Created standard robots.txt file.
+- `public/sitemap.xml`: Created sitemap listing all main views and new landing pages.
+- Verified lint and build success.
+
+[27-02-26] Implemented SEO Phase 3 (E-E-A-T & Support Pages).
+- Created new pages:
+  - `components/About.tsx`: "About Us" page to establish expertise and trust (E-E-A-T).
+  - `components/FAQ.tsx`: "Frequently Asked Questions" page for long-tail keywords and user help.
+  - `components/Contact.tsx`: Dedicated "Contact Us" page with a form (UI only for now) and detailed contact info.
+- `App.tsx`:
+  - Updated `ViewState` to include `about`, `faq`, `contact`.
+  - Added new routes to `Content` switch.
+- `components/Footer.tsx`: Added links to About, FAQ, and Contact pages.
+- `public/sitemap.xml`: Added new pages to sitemap.
+- Verified lint and build success.
+
+[27-02-26] Implemented SEO Phase 4 (Schema Markup & Structured Data).
+- `components/FAQ.tsx`: Added `FAQPage` schema to `SEO` component.
+- `components/DeviceLandingPage.tsx`: Added `SoftwareApplication` schema with OS, category, and rating.
+- `App.tsx`: Added `Organization` schema with `makesOffer` (Product/Service) for the home page.
+- `components/Blog.tsx`:
+  - Replaced direct `Helmet` usage with `SEO` component.
+  - Added `Blog` schema for the main list.
+  - Added `NewsArticle` schema for individual posts (when modal is open).
+- Verified lint and build success.
+
+[27-02-26] Redesigned Footer for Accessibility and Organization.
+- Updated `components/Footer.tsx`:
+  - Changed background to `bg-slate-950` for better contrast.
+  - Improved typography with uppercase, tracking-wider headings.
+  - Increased touch targets for links.
+  - Redesigned bottom section:
+    - Split into two rows/columns (Flexbox).
+    - Added Copyright section on the left.
+    - Added Trust Badges (SSL, Warranty) and Payment Icons (PayPal, Visa, etc.) on the right.
+  - Improved overall spacing and layout for better readability.
+
+[27-02-26] Implemented Accessibility Features (Standards Compliance).
+- Created `components/AccessibilityStatement.tsx`:
+  - Detailed statement explicitly mentioning WCAG 2.1 (European Standard EN 301 549) and ADA (American Standard).
+  - Lists implemented accessibility features.
+  - Provides contact info for accessibility issues.
+- Created `components/AccessibilityWidget.tsx`:
+  - Floating widget for user-controlled accessibility settings.
+  - Features: Font size adjustment, High Contrast/Grayscale modes, Link highlighting, Readable font toggle.
+- Updated `App.tsx`:
+  - Added `accessibility` route.
+  - Integrated `AccessibilityWidget` globally.
+- Updated `components/Footer.tsx`:
+  - Added link to "הצהרת נגישות" (Accessibility Statement).
+
+[27-02-26] Fixed UI Bug: ScrollToTop Button Overlap.
+- `components/ScrollToTop.tsx`: Moved button position from `right-8` to `right-28` to prevent overlap with the Support Menu (Telegram button). Added tooltip title.
+
+[27-02-26] Redesigned Telegram Button & Fixed Admin Login.
+- `components/SupportMenu.tsx`:
+  - Changed Telegram button from a floating circle to a fixed side widget on the right edge.
+  - Added hover effect: slides out from right to left to reveal "הצטרפו לטלגרם".
+  - This resolves the overlap issue with the ScrollToTop button completely.
+- `services/sheetService.ts`:
+  - Added fallback passwords (`admin123`, `kingtv2024`) to `adminLogin` function to ensure admin access even if the Apps Script is unresponsive or misconfigured.
+
+[02-03-26] Content & UI Updates.
+- **Content Accuracy**:
+  - Replaced "No buffering" with "Minimum buffering" across the site (`Hero.tsx`, `DeviceLandingPage.tsx`, `App.tsx`).
+  - Updated "4K Quality" promises to "Supports 4K" or "4K Support" to be more realistic (`Hero.tsx`, `ContentShowcase.tsx`, `DealsSection.tsx`, `constants.ts`, `App.tsx`).
+- **Pricing UI**:
+  - Added an info tooltip to the Service Level toggle in `Pricing.tsx`.
+  - Tooltip explains the difference between VIP Service (immediate response, special offers) and No Service (chat support up to 24h).
+
+[02-03-26] Mobile Menu Fix.
+- **Header Component**:
+  - Refactored mobile menu from a dropdown inside the header to a side drawer (sliding from right) outside the header.
+  - Increased `z-index` of Header to `z-[100]` and PromoBanner to `z-[110]`.
+  - Set Mobile Menu Drawer `z-index` to `z-[200]` to ensure it appears above all other content.
+  - This fixes the issue where the menu was "swallowed" behind other elements on mobile.
+
+[02-03-26] Bug Fixes & Improvements.
+- **Header Component**:
+  - Fixed `Uncaught TypeError` by renaming props passed from `App.tsx` to match `Header` definition:
+    - `onLogin` -> `onLoginClick`
+    - `onRegister` -> `onJoinClick`
+  - Added `onLogout` prop to `Header` and implemented logout button in both Desktop (icon) and Mobile (full button) menus.
+  - This ensures users can log out easily from any device.
+
+[02-03-26] Mobile Responsiveness Fixes.
+- **Modals**:
+  - Updated `z-index` for all modals (`LoginModal`, `JoinModal`, `RegisterModal`, `PurchaseModal`, `Profile`) to `z-[250]` and `z-[260]` to ensure they appear above the mobile menu (`z-[200]`).
+  - Added explicit "X" close buttons to all modals for better usability on mobile devices where clicking outside might be difficult.
+  - Adjusted padding and max-width for better fit on small screens.
+- **ChannelsViewer**:
+  - Refactored layout for mobile:
+    - Stacked the sidebar (categories) vertically on top of the content.
+    - Added horizontal scrolling (`overflow-x-auto`) to the channels table to prevent content cutoff and layout breaking.
+    - Adjusted container heights to be dynamic based on screen size.
+- **UI Improvements**:
+  - Optimized `ReportIssue` layout for mobile:
+    - Reduced padding and spacing.
+    - Changed "Select Subscription" to a 2-column grid on mobile.
+    - Changed "Content Type" to a 3-column grid on mobile.
+    - Ensured RTL alignment for labels.
+  - Improved button responsiveness across the site:
+    - **Header Mobile Menu**: Changed Login/Join buttons to a 2-column grid for better alignment and reduced padding.
+    - **Hero Section**: Changed CTA buttons to a 2-column grid on mobile (side-by-side) and reduced size/padding for a cleaner look.
+    - **Pricing Cards**: Reduced button padding and font size on mobile to prevent overflow.
+    - **Apps Guide**: Compacted category tabs on mobile.
+  - **Typography Adjustments**:
+    - Reduced font size of Hero headline on mobile (`text-5xl` -> `text-4xl`).
+    - Reduced font size of Pricing header on mobile (`text-4xl` -> `text-3xl`).
+    - Reduced font size of AppsGuide header on mobile (`text-5xl` -> `text-3xl`).
+    - Adjusted Trust Badges in Hero to be more compact (`text-[11px]`, reduced padding) and wrap correctly on small screens.
+  - Added "Back to Home" (חזרה לדף הבית) button in the mobile menu when not on the home page.
+  - Fixed Blog Details and Trailer modals in `Blog.tsx`:
+    - Added backdrop click handler to close the modal.
+    - Prevented modal close when clicking inside the content.
+    - Improved close button visibility and z-index.
+  - **DUKHIFAT Wallet Integration**:
+    - Created `server.ts` (Express + Vite) to handle server-side API calls and hide API keys.
+    - Implemented DUKHIFAT API endpoints: `/api/wallet/connect`, `/api/wallet/balance`, `/api/store/purchase`.
+    - Created `services/firebase.ts` for client-side Firebase Auth and Firestore.
+    - Created `components/Store.tsx` for the Store UI, Wallet display, and Purchase flow.
+    - Added "Store" link to Header (Desktop & Mobile).
+    - Updated `App.tsx` to include the Store view.
+    - Updated `package.json` to run the custom server.
+    - Added `.env.example` with required variables.
+
